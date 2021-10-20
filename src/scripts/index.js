@@ -32,7 +32,9 @@ const getPictures = function (page = 1, limit = 10) {
     showLoader();
     fetch(`https://picsum.photos/v2/list?page=${page};limit=${limit}`)
         .then(function (response) {return response.json()})
+        .catch(function (error) {alert('Ошибка загрузки')})
         .then(function (result) {renderPictures(result)})
+        .finally(hideLoader)
 }
 
 /**
@@ -44,7 +46,9 @@ const getPictureInfo = function (id = 0) {
     showLoader();
     fetch(`https://picsum.photos/id/${id}/info`)
         .then(function (response) {return response.json()})
+        .catch(function (error) {alert('Ошибка загрузки')})
         .then(function (result) {renderPopupPicture(result)})
+        .finally(hideLoader)
 }
 
 /**
@@ -62,7 +66,7 @@ const showLoader = function () {
 const hideLoader = function () {
     loaderTimeout = setTimeout(function () {
         loader.style.visibility = 'hidden';
-        loaderTimeout.clearTimeout();
+        clearTimeout(loaderTimeout);
     }, 700);
 }
 
@@ -95,6 +99,7 @@ const renderPictures = function (list) {
     const fragment = document.createDocumentFragment();
 
     list.forEach(function (element) {
+        const clone = templateImageCard.content.cloneNode(true);
         const link = clone.querySelector('a');
 
         link.href = element.url;
@@ -108,7 +113,6 @@ const renderPictures = function (list) {
     });
 
     container.appendChild(fragment);
-    hideLoader();
 }
 
 /**
@@ -129,8 +133,7 @@ const renderPopupPicture = function (picture) {
     link.href = picture.download_url;
 
     popupContainer.innerHTML = '';
-    popupContainer.appendChild(clone)
-    hideLoader();
+    popupContainer.appendChild(clone);
     togglePopup();
 }
 
@@ -151,15 +154,19 @@ const togglePopup = function () {
  */
 const actionHandler = function (evt) {
     evt.preventDefault();
-    const nextPage = evt.currentTarget.dataset.page;
+    const nextPage = parseInt(evt.currentTarget.dataset.page, 10);
     evt.currentTarget.dataset.page = nextPage + 1;
 
     if (nextPage > MAX_PAGE_IAMGES) {
         console.warn(`WARN: You are trying to call a page that exceeds ${MAX_PAGE_IAMGES}`);
-        evt.currentTarget.disabled = true;
-    } else {
-        getPictures(nextPage);
+        return;
     }
+
+    if (nextPage === MAX_PAGE_IAMGES) {
+        evt.currentTarget.disabled = true;
+    }
+
+    getPictures(nextPage);
 }
 
 /**
@@ -169,10 +176,13 @@ const actionHandler = function (evt) {
  * @param {MouseEvent} evt
  */
 const imageHandler = function (evt) {
+    const link = evt.target.closest('a');
+
     evt.preventDefault();
 
-    if (evt.target.closest('a')) {
-        getPictureInfo(evt.target.dataset.id);
+    if (link) {
+        const pictureId = parseInt(link.dataset.id, 10);
+        getPictureInfo(pictureId);
     }
 }
 

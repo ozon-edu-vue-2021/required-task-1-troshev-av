@@ -154,7 +154,7 @@ const togglePopup = function () {
  */
 const actionHandler = function (evt) {
     evt.preventDefault();
-    const nextPage = parseInt(evt.currentTarget.dataset.page, 10);
+    const nextPage = +evt.currentTarget.dataset.page;
     evt.currentTarget.dataset.page = nextPage + 1;
 
     if (nextPage > MAX_PAGE_IAMGES) {
@@ -176,12 +176,12 @@ const actionHandler = function (evt) {
  * @param {MouseEvent} evt
  */
 const imageHandler = function (evt) {
-    const link = evt.target.closest('a');
-
     evt.preventDefault();
 
+    const link = evt.target.closest('a');
+
     if (link) {
-        const pictureId = parseInt(link.dataset.id, 10);
+        const pictureId = +link.dataset.id;
         getPictureInfo(pictureId);
     }
 }
